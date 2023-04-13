@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>File Upload</title>
+  </head>
+  <body>
+    <h1>Upload Excel File</h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".xlsx">
+      <button type="submit">Upload</button>
+    </form>
+    <div id="results"></div>
+    <script>
+      document.querySelector('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const response = await fetch('/', { method: 'POST', body: formData });
+        const results = await response.json();
+        document.querySelector('#results').innerHTML = `<pre>${results.join('\n')}</pre>`;
+      });
+    </script>
+  </body>
+</html>
