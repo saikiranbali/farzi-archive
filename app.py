@@ -110,25 +110,6 @@ def process_excel(df):
 
     return results
 
-# @app.route('/', methods=['GET', 'POST'])
-# def index():
-
-#     if request.method == 'POST':
-#         try:
-#             file = request.files['file']
-#             file_buffer = BytesIO(file.read())
-#             df = pd.read_excel(file_buffer)
-#             results = process_excel(df)
-#             return jsonify(results)
-#         except Exception as e:
-#             return jsonify({'error': str(e)}), 400
-#     # if request.method == 'POST':
-#     #     file = request.files['file']
-#     #     results = process_excel(file)
-#     #     return jsonify(results)
-
-#     return render_template('index.html')
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
@@ -136,22 +117,41 @@ def index():
         try:
             file = request.files['file']
             file_buffer = BytesIO(file.read())
-            workbook = xlrd.open_workbook(file_contents=file_buffer.read())
-            sheet = workbook.sheet_by_index(0)
-            headers = [sheet.cell_value(0, col_index) for col_index in range(sheet.ncols)]
-            data = []
-            for row_index in range(1, sheet.nrows):
-                row = {}
-                for col_index in range(sheet.ncols):
-                    row[headers[col_index]] = sheet.cell_value(row_index, col_index)
-                data.append(row)
-            df = pd.DataFrame(data)
+            df = pd.read_excel(file_buffer)
             results = process_excel(df)
             return jsonify(results)
         except Exception as e:
             return jsonify({'error': str(e)}), 400
+    # if request.method == 'POST':
+    #     file = request.files['file']
+    #     results = process_excel(file)
+    #     return jsonify(results)
 
     return render_template('index.html')
+
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+
+#     if request.method == 'POST':
+#         try:
+#             file = request.files['file']
+#             file_buffer = BytesIO(file.read())
+#             workbook = xlrd.open_workbook(file_contents=file_buffer.read())
+#             sheet = workbook.sheet_by_index(0)
+#             headers = [sheet.cell_value(0, col_index) for col_index in range(sheet.ncols)]
+#             data = []
+#             for row_index in range(1, sheet.nrows):
+#                 row = {}
+#                 for col_index in range(sheet.ncols):
+#                     row[headers[col_index]] = sheet.cell_value(row_index, col_index)
+#                 data.append(row)
+#             df = pd.DataFrame(data)
+#             results = process_excel(df)
+#             return jsonify(results)
+#         except Exception as e:
+#             return jsonify({'error': str(e)}), 400
+
+#     return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
