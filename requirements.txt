@@ -18,3 +18,4 @@ tzdata==2022.1
 Werkzeug==2.2.2
 flask-cors
 xlrd
+pandas
