@@ -3,8 +3,6 @@ import json
 import requests
 import pandas as pd
 from flask import Flask, render_template, request, jsonify
-from io import BytesIO 
-from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -16,23 +14,16 @@ def lines_to_string(lines):
         line_str += f"variantName: \"{line['variantName']}\", "
         line_str += f"productName: \"{line['productName']}\", "
         line_str += f"productSku: \"{line['productSku']}\", "
-        line_str += f"productSku: \"{line['productSku']}\", "
         line_str += f"unitPriceGrossAmount: \"{line['unitPriceGrossAmount']}\", "
-        line_str += f"unitPriceNetAmount: \"{line['unitPriceNetAmount']}\", "
         line_str += f"imageUrl: \"{line['imageUrl']}\""
         line_str += "}"
         line_strs.append(line_str)
     return "[" + ", ".join(line_strs) + "]"
 
-def process_excel(df):
-    # df = pd.read_excel(file)
+def process_excel(file):
+    df = pd.read_excel(file)
     grouped_data = df.groupby('foreignOrderId')
     results = []
-
-    for foreignOrderId, group in grouped_data:
-        # calculate the sum of totalGrossAmount and totalNetAmount for this foreignOrderId
-        gross_sum = group['unitPriceNetAmount'].sum()
-        net_sum = group['totalNetAmount'].sum()
 
     for foreignOrderId, group in grouped_data:
         lines = []
@@ -43,12 +34,10 @@ def process_excel(df):
         'productName': row['productName'],
         'productSku': row['productSku'],
         'unitPriceGrossAmount': row['unitPriceGrossAmount'],
-        'unitPriceNetAmount': row['unitPriceNetAmount'],
         'imageUrl': ""
     })
 
         # ... (same as before)
-
 
         row = group.iloc[0]
         payload = {
@@ -58,8 +47,8 @@ def process_excel(df):
                     email: "{row['email']}",
                     lines: {lines_to_string(lines)},
                     placedOn: "{row['placed_on']}",
-                    totalGrossAmount: "{gross_sum}",
-                    totalNetAmount: "{net_sum}",
+                    totalGrossAmount: "{row['totalGrossAmount']}",
+                    totalNetAmount: "{row['totalNetAmount']}",
                     discountAmount: "{row['discountAmount']}",
                     metadata: "{{ shopify_order_id: 4525580779564 }}",
                     privateMetadata: "{row['privateMetadata']}",
@@ -105,26 +94,14 @@ def process_excel(df):
         response = requests.post(url, headers=headers, data=json.dumps(payload))
         results.append(response.text)
 
-    print(payload)
-
     return results
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-
     if request.method == 'POST':
-        try:
-            file = request.files['file']
-            file_buffer = BytesIO(file.read())
-            df = pd.read_excel(file_buffer)
-            results = process_excel(df)
-            return jsonify(results)
-        except Exception as e:
-            return jsonify({'error': str(e)}), 400
-    # if request.method == 'POST':
-    #     file = request.files['file']
-    #     results = process_excel(file)
-    #     return jsonify(results)
+        file = request.files['file']
+        results = process_excel(file)
+        return jsonify(results)
 
     return render_template('index.html')
 
